@@ -6,19 +6,6 @@ import moment from "moment";
 import "react-dates/lib/css/_datepicker.css";
 import "moment/locale/fi";
 
-// getComputerMove :: (Moment a) -> Moment
-function getComputerMove(a) {
-  const b = a.date();
-  if (31 === b) return moment({ date: 31, month: 11 });
-  const c = a.month(),
-    d = c + 20;
-  if (d > b) return moment({ date: d, month: c });
-  const e = moment({ date: b, month: c + 1 });
-  return e.isValid() ? e : moment({ date: b, month: c + 2 });
-}
-
-//const props = {};
-
 class App extends Component {
   constructor() {
     super();
@@ -27,6 +14,8 @@ class App extends Component {
       date: moment({ date: 1, month: 0 }),
       displayFormat: "DD-MM",
       dates: [],
+      winText: "",
+      disabled: false,
       blockDate: moment("1-1-2017", "DD-MM-YYYY")
     };
     // this.setState(({ date }) => ({
@@ -40,44 +29,68 @@ class App extends Component {
       date: moment({ date: 1, month: 0 }),
       displayFormat: "DD-MM",
       dates: [],
+      winText: "",
+      disabled: false,
       blockDate: moment("1-1-2017", "DD-MM-YYYY")
     };
   };
 
+  end = won => {
+    this.setState({ disabled: true });
+    if (won) {
+      this.setState({ winText: "Player won!" });
+    } else {
+      this.setState({ winText: "Computer won!" });
+    }
+  };
+
   isDayBlocked = date => {
     return (
-      date > moment("1-1-2018", "DD-MM-YYYY") ||
       date < this.state.blockDate ||
       (date.date() !== this.state.date.date() &&
         date.month() !== this.state.date.month())
     );
   };
 
-  isOutsideRange = day => {
-    return false;
+  isOutsideRange = date => {
+    return (
+      date > moment("1-1-2018", "DD-MM-YYYY") ||
+      date < moment("1-1-2017", "DD-MM-YYYY")
+    );
   };
 
-  handleTurn = () => {
-    if (!this.state.turn) this.setState(getComputerMove(this.state.date));
-    this.state.turn = this.state.turn ? false : true;
-  };
+  // handleTurn = () => {
+  //   if (!this.state.turn) this.setState(getComputerMove(this.state.date));
+  //   this.state.turn = this.state.turn ? false : true;
+  // };
 
   dateChange = date => {
-    if (
-      (date.date() === this.state.date.date() &&
-        date.month() !== this.state.date.month()) ||
-      (date.date() !== this.state.date.date() &&
-        date.month() === this.state.date.month())
-    ) {
-      // if (this.state.turn) this.state.turn = false;
-      // else this.state.turn = true;
-      // this.state.turn = this.state.turn ? false : true;
+    // if (
+    //   (date.date() === this.state.date.date() &&
+    //     date.month() !== this.state.date.month()) ||
+    //   (date.date() !== this.state.date.date() &&
+    //     date.month() === this.state.date.month())
+    // ) {
+    // if (this.state.turn) this.state.turn = false;
+    // else this.state.turn = true;
+    // this.state.turn = this.state.turn ? false : true;
+    if (date.date() === 31 && date.month() === 11) {
+      this.setState({ blockDate: date });
+      this.end(true);
+    } else {
       this.state.dates.push(date);
       //this.state.blockDate = date; //setBlockDate(date);
       date = this.getComputerMove(date);
-      this.state.blockDate = date;
-      return this.setState({ date });
+      //this.state.blockDate = date;
+      this.setState({ blockDate: date });
+      //this.setState({ focused: true });
+      if (date.date() === 31 && date.month() === 11) {
+        this.end(false);
+      } else {
+        return this.setState({ date });
+      }
     }
+    //}
   };
 
   getComputerMove = a => {
@@ -91,7 +104,6 @@ class App extends Component {
     if (d > b) return moment({ date: d, month: c });
     const e = moment({ date: b, month: c + 1 });
     const f = e.isValid() ? e : moment({ date: b, month: c + 2 });
-    this.state.blockDate = f;
     this.state.dates.push(f);
     return f;
   };
@@ -119,15 +131,15 @@ class App extends Component {
           displayFormat={this.state.displayFormat}
           isDayBlocked={this.isDayBlocked}
           isOutsideRange={this.isOutsideRange}
+          disabled={this.state.disabled}
         />
+        <div className="win">
+          {this.state.winText}
+        </div>
         <div>
           <ul>
             {this.state.dates.map(date => {
-              if (date) {
-                return (
-                  <li key={date.format("DD-MM")}>{date.format("DD-MM")}</li>
-                );
-              }
+              return <li key={date.format("DD-MM")}>{date.format("DD-MM")}</li>;
             })}
           </ul>
         </div>
