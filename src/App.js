@@ -6,33 +6,24 @@ import moment from "moment";
 import "react-dates/lib/css/_datepicker.css";
 import "moment/locale/fi";
 
+const initProps = {
+  turn: true,
+  date: moment({ date: 1, month: 0 }),
+  displayFormat: "DD-MM",
+  dates: [],
+  winText: "",
+  disabled: false,
+  blockDate: moment("1-1-2017", "DD-MM-YYYY")
+};
+
 class App extends Component {
   constructor() {
     super();
-    this.state = {
-      turn: true,
-      date: moment({ date: 1, month: 0 }),
-      displayFormat: "DD-MM",
-      dates: [],
-      winText: "",
-      disabled: false,
-      blockDate: moment("1-1-2017", "DD-MM-YYYY")
-    };
-    // this.setState(({ date }) => ({
-    //   date: 1
-    // }));
+    this.state = initProps;
   }
 
   restart = () => {
-    this.state = {
-      turn: true,
-      date: moment({ date: 1, month: 0 }),
-      displayFormat: "DD-MM",
-      dates: [],
-      winText: "",
-      disabled: false,
-      blockDate: moment("1-1-2017", "DD-MM-YYYY")
-    };
+    this.state = initProps;
   };
 
   end = won => {
@@ -59,67 +50,49 @@ class App extends Component {
     );
   };
 
-  // handleTurn = () => {
-  //   if (!this.state.turn) this.setState(getComputerMove(this.state.date));
-  //   this.state.turn = this.state.turn ? false : true;
-  // };
-
   dateChange = date => {
-    // if (
-    //   (date.date() === this.state.date.date() &&
-    //     date.month() !== this.state.date.month()) ||
-    //   (date.date() !== this.state.date.date() &&
-    //     date.month() === this.state.date.month())
-    // ) {
-    // if (this.state.turn) this.state.turn = false;
-    // else this.state.turn = true;
-    // this.state.turn = this.state.turn ? false : true;
+    this.state.dates.push(date);
+    this.setState(this.state);
     if (date.date() === 31 && date.month() === 11) {
       this.setState({ blockDate: date });
+      this.setState({ date });
       this.end(true);
     } else {
-      this.state.dates.push(date);
-      //this.state.blockDate = date; //setBlockDate(date);
       date = this.getComputerMove(date);
-      //this.state.blockDate = date;
+      this.state.dates.push(date);
+      this.setState(this.state);
       this.setState({ blockDate: date });
-      //this.setState({ focused: true });
       if (date.date() === 31 && date.month() === 11) {
+        this.setState({ date });
         this.end(false);
       } else {
         return this.setState({ date });
       }
     }
-    //}
   };
 
   getComputerMove = a => {
-    // if (this.state.turn) this.state.turn = false;
-    // else this.state.turn = true;
-    //this.state.turn = this.state.turn ? false : true;
     const b = a.date();
     if (31 === b) return moment({ date: 31, month: 11 });
     const c = a.month(),
       d = c + 20;
-    if (d > b) return moment({ date: d, month: c });
-    const e = moment({ date: b, month: c + 1 });
-    const f = e.isValid() ? e : moment({ date: b, month: c + 2 });
-    this.state.dates.push(f);
-    return f;
+    if (d < b) {
+      const e = b - 20,
+        f = moment({ date: b, month: e });
+      return f.isValid() ? f : moment({ date: b, month: e + 1 });
+    }
+    return moment(d === b ? { date: b, month: c + 1 } : { date: d, month: c });
   };
-
-  // setBlockDate = blockDate =>
-  //   this.setState(({ blockDate }) => ({ blockDate: blockDate }));
 
   render() {
     return (
       <div className="App">
         <div className="App-header">
           <img src={logo} className="App-logo" alt="logo" />
-          <h2>Welcome to React</h2>
+          <h2>Welcome to the race to december 31</h2>
         </div>
         <p className="App-intro">
-          To get started, edit <code>src/App.js</code> and save to reload.
+          To get started, select date from date picker.
         </p>
         <SingleDatePicker
           date={this.state.date} // momentPropTypes.momentObj or null
